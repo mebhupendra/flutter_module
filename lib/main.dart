@@ -2,15 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'transactions_screen.dart';
+import 'account.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
         home: Scaffold(
       body: Center(child: JSONListView()),
     ));
@@ -25,34 +27,9 @@ double checkDouble(dynamic value) {
   }
 }
 
-class Account {
-  String guid;
-  String name;
-  double balance;
-
-  Account({required this.guid, required this.name, required this.balance});
-
-  factory Account.fromJson(Map<String, dynamic> json) {
-    return Account(
-        guid: json['guid'],
-        name: json['name'],
-        balance: checkDouble(json['balance']));
-  }
-}
-
-class Transaction {
-  String description;
-  double amount;
-
-  Transaction({required this.description, required this.amount});
-
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
-        description: json['description'], amount: checkDouble(json['amount']));
-  }
-}
-
 class JSONListView extends StatefulWidget {
+  const JSONListView({super.key});
+
   AccountsListView createState() => AccountsListView();
 }
 
@@ -127,87 +104,11 @@ class AccountsListView extends State {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DetailScreen(account: account),
+                          builder: (context) =>
+                              TransactionsScreen(account: account),
                         ),
                       );
                     },
-                  ),
-                )
-                .toList(),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class DetailScreen extends StatelessWidget {
-  // In the constructor, require a Todo.
-  const DetailScreen({super.key, required this.account});
-  // Declare a field that holds the Todo.
-  final Account account;
-  final platform = const MethodChannel("com.flutter.mx/mx");
-
-  Future<List<Transaction>> fetchTransactions() async {
-    var jsonResponse = await getTransactions(account.guid);
-    if (jsonResponse.isNotEmpty) {
-      final jsonItems = json.decode(jsonResponse).cast<Map<String, dynamic>>();
-      List<Transaction> transactionList = jsonItems.map<Transaction>((json) {
-        return Transaction.fromJson(json);
-      }).toList();
-      return transactionList;
-    } else {
-      throw Exception('Failed to load transaction data');
-    }
-  }
-
-  Future<String> getTransactions(String guid) async {
-    String transactionsJson = "";
-    try {
-      transactionsJson = await platform
-          .invokeMethod("getTransactions", {"account_guid": account.guid});
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-    }
-    if (kDebugMode) {
-      print(transactionsJson);
-    }
-    return transactionsJson;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Use the Todo to create the UI.
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(account.name),
-      ),
-      body: FutureBuilder<List<Transaction>>(
-        future: fetchTransactions(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return ListView(
-            children: snapshot.data!
-                .map(
-                  (transaction) => ListTile(
-                    title: Text(transaction.description),
-                    subtitle: Text('Amount: ' + transaction.amount.toString()),
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.green,
-                      child: Text(
-                        //account.name[0],
-                        transaction.description[0],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20.0,
-                        ),
-                      ),
-                    ),
                   ),
                 )
                 .toList(),
