@@ -126,7 +126,7 @@ class AccountsListView extends State {
           Navigator.pop(context);
         } else {
           //SystemNavigator.pop();
-          await platform.invokeMethod("QuitPlugin");
+          await platform.invokeMethod("quitPlugin");
         }
         break;
       default:
