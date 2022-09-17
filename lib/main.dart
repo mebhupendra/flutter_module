@@ -68,14 +68,15 @@ class AccountsListView extends State {
 
   @override
   Widget build(BuildContext context) {
+    platform.setMethodCallHandler(nativeMethodCallHandler);
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () => SystemNavigator.pop(),
-        ),
-        title: const Text('EPIC Bank - Accounts'),
-      ),
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+      //     onPressed: () => SystemNavigator.pop(),
+      //   ),
+      //   title: const Text('EPIC Bank - Accounts'),
+      // ),
       body: FutureBuilder<List<Account>>(
         future: fetchAccounts(),
         builder: (context, snapshot) {
@@ -116,5 +117,21 @@ class AccountsListView extends State {
         },
       ),
     );
+  }
+
+  Future<dynamic> nativeMethodCallHandler(MethodCall methodCall) async {
+    switch (methodCall.method) {
+      case "handle_back_button":
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          //SystemNavigator.pop();
+          await platform.invokeMethod("QuitPlugin");
+        }
+        break;
+      default:
+        return "Nothing";
+        break;
+    }
   }
 }
